@@ -23,7 +23,7 @@ def trigger_update():
     date_time = date_time.strftime("%Y-%m-%dT%H:%M:%S")
     # date_time = requests.get("http://worldtimeapi.org/api/timezone/Asia/Kolkata").json()["datetime"]
     year,month,day = date_time.split("T")[0].split('-')
-    day = "25"
+    # day = "25"
     date = day+"/"+month+"/"+year
     client = make_connections()
     db = client.player_data
