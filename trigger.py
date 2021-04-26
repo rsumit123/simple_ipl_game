@@ -37,11 +37,11 @@ def trigger_update():
             match_no = match["match_no"]
             print("Checking for match no: ",match_no)
             scorecard_data = requests.get(api_url.replace("18",str(match_no)),verify=False,timeout=10).json()
-            if "the scorecard will" not in scorecard_data["result"]["update"] and scorecard_data["result"]["winning_margin"].lower()=="NA":
+            if "the scorecard will" not in scorecard_data["result"]["update"] and scorecard_data["result"]["winning_margin"].lower()=="na":
                 update_points(match_no)
             else:
                 print("match has not started yet")
-        time.sleep(30)
+        time.sleep(500)
 
 
 
