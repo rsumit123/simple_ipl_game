@@ -281,10 +281,28 @@ def update_final_leaderboard():
 
     return redirect(url_for('get_leaderboard'))
 
-# @app.route("/view_predictions",methods=["GET","POST"])
-# def view_predictions():
-#     if request.method == "GET":
-#         return render_template('view_predictions.html',matches = )
+@app.route("/view_predictions",methods=["GET","POST"])
+def view_predictions():
+    if request.method == "GET":
+        client = make_connections()
+        db = client.player_data
+        
+        cc = db["per_match_data"]
+        matches = list(cc.find({},{"match_name":1,"_id":0}))
+        matches = [i["match_name"] for i in matches]
+        client.close()
+
+        return render_template('view_predictions.html',matches = matches )
+    if request.method =="POST":
+        # return request.form
+        match_name = request.form["match"]
+        client = make_connections()
+        db = client.player_data
+        
+        cc = db["per_match_data"].find_one({"match_name":match_name})
+
+        return cc["player_predictions"]
+
     
 @app.route("/update_points",methods=["GET"])
 def update_points(match_no):

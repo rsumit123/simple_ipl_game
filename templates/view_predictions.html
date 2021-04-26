@@ -9,17 +9,17 @@
         
         
         <h1><center>View Predictions </center></h1>
-        <h3>{{ data }}</h3>
+        <h3></h3>
         <form class="example" method="post" action="" style="margin:auto;max-width:600px">
-            <input type="text" placeholder="Enter Player UserName" name="username">
-            <input type="text" placeholder="Enter Player Password" name="password">
+            <h4>Select Match</h4>
+            
             <select name="match" style="margin:auto;max-width:600px">
                 {% for no in matches%}
                     <option value="{{ no }}">{{ no }}</option>
                 {% endfor %}
               </select>
             
-		    </br>
+		    </br></br>
             <button type="submit" <i> View</i></button>
         </form>
     <br><br>
