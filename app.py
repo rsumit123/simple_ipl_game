@@ -9,6 +9,7 @@ from datetime import datetime
 
 api_url = "https://ipl2021-live.herokuapp.com/scorecard?match_no=18"
 teams = {"bangalore":"rcb","chennai":"csk","kolkata":"kkr","rajasthan":"rr","delhi":"dc","mumbai":"mi","hyderabad":"srh","punjab":"pbks"}
+player_mappings = {"mohammad shami":"mohammed shami"}
 # MONGODB_URL = 'mongodb+srv://rsumit123:mongoatlas@cluster0.eyg9j.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 MONGODB_URL = "mongodb://rsumit123:mongoatlas@cluster0-shard-00-00.eyg9j.mongodb.net:27017,cluster0-shard-00-01.eyg9j.mongodb.net:27017,cluster0-shard-00-02.eyg9j.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-dbf0fd-shard-0&authSource=admin&retryWrites=true&w=majority"
 db = None
@@ -349,6 +350,8 @@ def get_points(match_no,user_data):
     user_points = {}
     for user,pred in user_data["player_predictions"].items():
         print(user,pred)
+        print(player_points["prediction_1"])
+        print("========================================")
         username = user
         prediction_1 = pred["prediction_1"]
         if prediction_1 not in player_points["prediction_1"]:
@@ -410,6 +413,33 @@ def calculate_points_prediction_2(prediction_2,scorecard_data):
             p_points=calculate_points_for_wickets(player_data,scorecard_data)
             # player_points[prediction_1] = p_points
             return p_points
+
+    ###################CHECKING MAPPINGS===================================================
+
+
+    if prediction_2 in player_mappings:
+
+        prediction_2 = player_mappings[prediction_2]
+
+        for player_data in scorecard_data["Innings1"][1]["Bowlers"]:
+        
+            if prediction_2.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_2.lower() :
+                
+                p_points=calculate_points_for_wickets(player_data,scorecard_data)
+                # player_points[prediction_1] = p_points
+                return p_points
+        for player_data in scorecard_data["Innings2"][1]["Bowlers"]:
+        
+            if prediction_2.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_2.lower() :
+                
+                p_points=calculate_points_for_wickets(player_data,scorecard_data)
+                # player_points[prediction_1] = p_points
+                return p_points
+        
+
+
+
+    
         
         # elif prediction_2.lower().split()[1] in player_data["name"].split()[1].lower():
         #     p_points=calculate_points_for_wickets(player_data,scorecard_data)
@@ -450,7 +480,7 @@ def calculate_points_prediction_1(prediction_1,scorecard_data):
     
     for player_data in scorecard_data["Innings1"][0]["Batsman"]:
         
-        if prediction_1.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_1.lower() :
+        if prediction_1.lower().strip() in player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() or player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() in prediction_1.lower() :
             
             p_points=calculate_points_for_runs(player_data,scorecard_data)
             # player_points[prediction_1] = p_points
@@ -475,6 +505,33 @@ def calculate_points_prediction_1(prediction_1,scorecard_data):
             # player_points[prediction_1] = p_points
             return p_points
 
+
+    #####################################################CALCULATE MAPPINGS===========
+
+
+
+
+
+
+    if prediction_1 in player_mappings:
+
+        prediction_1 = player_mappings[prediction_1]
+
+        for player_data in scorecard_data["Innings1"][0]["Batsman"]:
+        
+            if prediction_1.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_1.lower() :
+                
+                p_points=calculate_points_for_wickets(player_data,scorecard_data)
+                # player_points[prediction_1] = p_points
+                return p_points
+        for player_data in scorecard_data["Innings2"][0]["Batsman"]:
+        
+            if prediction_1.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_1.lower() :
+                
+                p_points=calculate_points_for_wickets(player_data,scorecard_data)
+                # player_points[prediction_1] = p_points
+                return p_points
+
     return p_points
 
 
@@ -491,6 +548,7 @@ def calculate_points_for_runs(player_data,scorecard_data):
         runs.append(int(pl["runs"]))
     h_runs_scored = max(runs)
     p_points = int((p_runs_scored/h_runs_scored)*100)
+    print(player_data['name']+" : "+str(p_points))
     return p_points
     
 
