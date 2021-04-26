@@ -1,0 +1,25 @@
+<!doctype html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+<body>
+    <h3> <center> {{ match_no }} Leaderboard</center> </h3>
+  <table border = 1, style="margin:auto;max-width:600px">
+    {% for key, value in result.items() %}
+
+    <tr>
+       <th> {{ key }} </th>
+       <td> {{ value }} </td>
+    </tr>
+
+    {% endfor %}
+ </table>
+ <a href={{ url_for("add_player") }}>Add Player</a>
+ <br><br>
+ <a href={{ url_for("make_predictions") }}>Make Predictions</a>
+ <br><br>
+ <a href={{ url_for("get_leaderboard") }}>Final Leaderboard</a>
+
+</body>

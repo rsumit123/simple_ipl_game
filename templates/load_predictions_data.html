@@ -1,0 +1,50 @@
+<!doctype html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+<body>
+    <h3> <center>Make Prediction for Match {{ match_no }}</center> </h3>
+    <form class="example" method="post" action = {{ url_for("submit_predictions") }} style="margin:auto;max-width:600px">
+        <input type="text" placeholder="Enter Player UserName" name="username">
+        <input type="text" placeholder="Enter Player Password" name="password">
+        <br><br><br><br>
+        <h4>Match No</h4>
+        <select name="no" style="margin:auto;max-width:600px">
+            {% for no in match_no%}
+                <option value="{{ no }}">{{ no }}</option>
+            {% endfor %}
+          </select>
+
+        <h4>Select The player with highest runs</h4>
+        <select name="activity" style="margin:auto;max-width:600px">
+            {% for activity in activities %}
+                <option value="{{ activity }}">{{ activity }}</option>
+            {% endfor %}
+          </select>
+        <h4> select the player with highest wickets </h4>
+        <select name="activity2" style="margin:auto;max-width:600px">
+            {% for activity2 in activities2 %}
+                <option value="{{ activity2 }}">{{ activity2 }}</option>
+            {% endfor %}
+          </select>
+          <h4>Select The winning Team</h4>
+        <select name="activity3" style="margin:auto;max-width:600px">
+            {% for activity3 in activities3 %}
+                <option value="{{ activity3 }}">{{ activity3 }}</option>
+            {% endfor %}
+          </select>
+        
+        </br>
+        <button type="submit" <i> Submit</i></button>
+    </form>
+    
+      
+ <a href={{ url_for("add_player") }}>Add Player</a>
+ <br><br>
+ <a href={{ url_for("get_leaderboard") }}>Final Leaderboard</a>
+ <br><br>
+ <a href={{ url_for("match_leaderboard") }}>Match Leaderboard</a>
+
+</body>

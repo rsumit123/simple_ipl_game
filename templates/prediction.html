@@ -1,0 +1,24 @@
+<!doctype html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+<body>
+    <h3> <center>SELECT FROM MATCHES OF TODAY</center> </h3>
+    <form class="example" method="post" action="" style="margin:auto;max-width:600px">
+        
+        <select name="activity" style="margin:auto;max-width:600px">
+            {% for activity in activities %}
+                <option value="{{ activity }}">{{ activity }}</option>
+            {% endfor %}
+          </select>
+        
+        </br>
+        <button type="submit" <i> Submit</i></button>
+    </form>
+    
+      
+ <a href={{ url_for("add_player") }}>Add Player</a>
+
+</body>

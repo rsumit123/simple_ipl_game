@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/static/index.css">
+    </head>
+    <body>
+        
+        
+        <h1><center>View Predictions </center></h1>
+        <h3>{{ data }}</h3>
+        <form class="example" method="post" action="" style="margin:auto;max-width:600px">
+            <input type="text" placeholder="Enter Player UserName" name="username">
+            <input type="text" placeholder="Enter Player Password" name="password">
+            <select name="match" style="margin:auto;max-width:600px">
+                {% for no in matches%}
+                    <option value="{{ no }}">{{ no }}</option>
+                {% endfor %}
+              </select>
+            
+		    </br>
+            <button type="submit" <i> View</i></button>
+        </form>
+    <br><br>
+    <a href={{ url_for("make_predictions") }}>Make Predictions</a>
+    <br><br>
+    <a href={{ url_for("get_leaderboard") }}>Final Leaderboard</a>
+    </body>
+</html> 
