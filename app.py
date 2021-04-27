@@ -386,6 +386,7 @@ def get_points(match_no,user_data):
             player_points["prediction_2"][prediction_2]=calculate_points_prediction_2(prediction_2,scorecard_data)
         prediction_3 = pred["prediction_3"]
         inv_teams = {v: k for k, v in teams.items()}
+        inv_teams["NA"]="na"
         if inv_teams[prediction_3] in scorecard_data["result"]["winning_team"].lower():
             player_points["prediction_3"][prediction_3]=200
         else:
