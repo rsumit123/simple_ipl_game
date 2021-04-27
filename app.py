@@ -132,7 +132,7 @@ def make_predictions():
         match_hours = int(res["match_time"].split(":")[0].strip())+12
         match_mins = int(res["match_time"].split(":")[1].replace("PM",'').strip())
         client.close()
-        if  (current_hour>match_hours) or (current_hour == match_hours and current_min > 50) :
+        if  (current_hour>match_hours) or (current_hour == match_hours and current_min > 40) :
             flash("Time has passed please select another match")
             return render_template("failure1.html")
         else:
