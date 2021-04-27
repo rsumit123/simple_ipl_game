@@ -78,6 +78,10 @@ def get_leaderboard():
 
     return render_template('leaderboard.html',result = sorted_di)
 
+def get_data_from_api(match_no):
+
+    data = requests.get(api_url.replace("18",str(match_no))).json()
+    return data
 
 @app.route("/predictions", methods=["GET","POST"])
 def make_predictions():
@@ -128,7 +132,7 @@ def make_predictions():
         match_hours = int(res["match_time"].split(":")[0].strip())+12
         match_mins = int(res["match_time"].split(":")[1].replace("PM",'').strip())
         client.close()
-        if  (current_hour>match_hours) or (current_hour == match_hours and current_min > match_mins) :
+        if  (current_hour>match_hours) or (current_hour == match_hours and current_min > 50) :
             flash("Time has passed please select another match")
             return render_template("failure1.html")
         else:
@@ -142,10 +146,22 @@ def make_predictions():
                         break
 
             if len(playing_teams)==2:
-                client = make_connections()
+                scoreboard_data = get_data_from_api(int(activity))
+                if len(scoreboard_data["playing_eleven"])==2:
+                    squad = [scoreboard_data["playing_eleven"][key] for key in scoreboard_data["playing_eleven"].keys()]
+                    matches = squad[0]
+                    matches.extend(squad[1])
+                    # matches = squad.copy()
+                else:
+                    
 
-                cc2 = client["squad_data"]["players"]
-                squad = list(cc2.find({"$or":[{"team":playing_teams[0]},{"team":playing_teams[1]}]},{"_id":0}))
+
+                    client = make_connections()
+
+                    cc2 = client["squad_data"]["players"]
+                    squad = list(cc2.find({"$or":[{"team":playing_teams[0]},{"team":playing_teams[1]}]},{"_id":0}))
+                    matches = [i['player'].lower() for i in squad]
+                    client.close()
                 print(squad)
             else:
                 print(playing_teams)
@@ -155,7 +171,7 @@ def make_predictions():
             
             
 
-            matches = [i['player'].lower() for i in squad]
+            
             matches2 = copy.deepcopy(matches)
 
 
