@@ -361,7 +361,7 @@ def update_points(match_no):
 
 def get_points(match_no,user_data):
     # match_no=19
-    player_points={"prediction_1":{},"prediction_2":{},"prediction_3":{}}
+    player_points={"prediction_1":{"NA":0,"na":0},"prediction_2":{"NA":0,"na":0},"prediction_3":{"NA":0,"na":0}}
     try:
 
         scorecard_data = requests.get(api_url.replace("18",str(match_no)),verify=False,timeout=10).json()
@@ -378,6 +378,7 @@ def get_points(match_no,user_data):
         print("========================================")
         username = user
         prediction_1 = pred["prediction_1"]
+
         if prediction_1 not in player_points["prediction_1"]:
             player_points["prediction_1"][prediction_1]=calculate_points_prediction_1(prediction_1,scorecard_data)
         prediction_2 = pred["prediction_2"]
