@@ -8,11 +8,11 @@ import time
 from datetime import datetime
 
 api_url = "https://ipl2021-live.herokuapp.com/scorecard?match_no=18"
+prediction_mappings= {"prediction_1":"Most Runs","prediction_2":"Most Wickets","prediction_3":"Winning Team","points":"points"}
 teams = {"bangalore":"rcb","chennai":"csk","kolkata":"kkr","rajasthan":"rr","delhi":"dc","mumbai":"mi","hyderabad":"srh","punjab":"pbks"}
 player_mappings = {"mohammad shami":"mohammed shami"}
 # MONGODB_URL = 'mongodb+srv://rsumit123:mongoatlas@cluster0.eyg9j.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 MONGODB_URL = "mongodb://rsumit123:mongoatlas@cluster0-shard-00-00.eyg9j.mongodb.net:27017,cluster0-shard-00-01.eyg9j.mongodb.net:27017,cluster0-shard-00-02.eyg9j.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-dbf0fd-shard-0&authSource=admin&retryWrites=true&w=majority"
-db = None
 app = flask.Flask(__name__)
 app.secret_key = "abcd1234abcd123abcd12"
 # client = None
@@ -299,13 +299,21 @@ def view_predictions():
         match_name = request.form["match"]
         client = make_connections()
         db = client.player_data
-        
-        cc = db["per_match_data"].find_one({"match_name":match_name})
+        try:
+            cc = db["per_match_data"].find_one({"match_name":match_name})
+        except:
+            client.close()
+            client = make_connections()
+            db = client.player_data
+            cc = db["per_match_data"].find_one({"match_name":match_name})
 
-        return cc["player_predictions"]
+
+        
+
+        return render_template("show_predictions.html",player_predictions = cc['player_predictions'],prediction_mapping = prediction_mappings)
 
     
-@app.route("/update_points",methods=["GET"])
+@app.route("/update_points/<int:match_no>",methods=["GET"])
 def update_points(match_no):
 # tz = pytz.timezone('Asia/Kolkata')
 # date_time = datetime.now(tz)

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/static/index.css">
+    </head>
+    <body>
+        
+        
+        <h1><center>View Predictions </center></h1>
+        <h3></h3>
+        {% for k,v in player_predictions.items() %}
+            <br>
+        
+            {{ k }} 
+            <br>
+            ==========
+            <br>
+            {% for i, j in v.items()%}
+            {{ prediction_mapping[i] }} : {{ j }} |
+            {% endfor %}
+            <br>
+            ==========
+            <br><br>
+        
+        {% endfor %}
+        
+            
+		    </br></br>
+    
+            <a href={{ url_for("home") }}>Go Back to Home</a>
+
+            <br><br>
+            <a href={{ url_for("make_predictions") }}>Make Predictions</a>
+            <br><br>
+            <a href={{ url_for("get_leaderboard") }}>Final Leaderboard</a>
+            <br><br>
+            <a href={{ url_for("match_leaderboard") }}>Match Leaderboard</a>
+            <br><br>
+            <a href={{ url_for("add_player") }}>Add Player</a>
+    </body>
+</html> 
