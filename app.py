@@ -10,7 +10,7 @@ from datetime import datetime
 api_url = "https://ipl2021-live.herokuapp.com/scorecard?match_no=18"
 prediction_mappings= {"prediction_1":"Most Runs","prediction_2":"Most Wickets","prediction_3":"Winning Team","points":"points"}
 teams = {"bangalore":"rcb","chennai":"csk","kolkata":"kkr","rajasthan":"rr","delhi":"dc","mumbai":"mi","hyderabad":"srh","punjab":"pbks"}
-player_mappings = {"mohammad shami":"mohammed shami"}
+player_mappings = {"mohammad shami":"mohammed shami","amit mishra":"a mishra"}
 # MONGODB_URL = 'mongodb+srv://rsumit123:mongoatlas@cluster0.eyg9j.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 MONGODB_URL = "mongodb://rsumit123:mongoatlas@cluster0-shard-00-00.eyg9j.mongodb.net:27017,cluster0-shard-00-01.eyg9j.mongodb.net:27017,cluster0-shard-00-02.eyg9j.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-dbf0fd-shard-0&authSource=admin&retryWrites=true&w=majority"
 app = flask.Flask(__name__)
@@ -525,7 +525,7 @@ def calculate_points_prediction_1(prediction_1,scorecard_data):
         #     break
     for player_data in scorecard_data["Innings2"][0]["Batsman"]:
         
-        if prediction_1.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_1.lower() :
+        if prediction_1.lower().strip() in player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() or player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() in prediction_1.lower() :
             
             p_points=calculate_points_for_runs(player_data,scorecard_data)
             # player_points[prediction_1] = p_points
