@@ -69,7 +69,7 @@ def get_leaderboard():
     db = client.player_data
     cc = db["final_player_data"]
     res = list(cc.find())
-    sorted_d = sorted(res, key=lambda k: k['points']) 
+    sorted_d = sorted(res, key=lambda k: k['points'],reverse=True) 
     sorted_di ={}
     for m in sorted_d:
         sorted_di[m['username']] = m['points']
@@ -262,7 +262,7 @@ def match_leaderboard():
             m.append(mat_lead)
 
         # res = res["player_predictions"]
-        sorted_d = sorted(m, key=lambda k: k['points']) 
+        sorted_d = sorted(m, key=lambda k: k['points'],reverse=True) 
         sorted_di ={}
         for m in sorted_d:
             sorted_di[m['username']] = m['points']
