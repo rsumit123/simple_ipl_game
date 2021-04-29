@@ -35,6 +35,18 @@
                 <option value="{{ activity3 }}">{{ activity3 }}</option>
             {% endfor %}
           </select>
+          <h4>Select the range of 1st innings score</h4>
+        <select name="activity4" style="margin:auto;max-width:600px">
+            {% for activity4 in activities4 %}
+                <option value="{{ activity4 }}">{{ activity4 }}</option>
+            {% endfor %}
+          </select>
+          <h4>Select the range of 2nd innings score</h4>
+        <select name="activity5" style="margin:auto;max-width:600px">
+            {% for activity5 in activities5 %}
+                <option value="{{ activity5 }}">{{ activity5 }}</option>
+            {% endfor %}
+          </select>
         
         <br><br><br>
         <button type="submit" <i> Submit</i></button>
