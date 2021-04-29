@@ -234,6 +234,7 @@ def match_leaderboard():
         
         cc = db["per_match_data"]
         matches = list(cc.find({},{"match_name":1,"_id":0}))
+        matches = sorted(matches, key=lambda k: k['match_no'])
         matches = [i["match_name"] for i in matches]
         client.close()
         return render_template('prediction.html',activities = matches)
@@ -327,6 +328,7 @@ def view_predictions():
         
         cc = db["per_match_data"]
         matches = list(cc.find({},{"match_name":1,"_id":0}))
+        matches = sorted(matches, key=lambda k: k['match_no'])
         matches = [i["match_name"] for i in matches]
         client.close()
 
