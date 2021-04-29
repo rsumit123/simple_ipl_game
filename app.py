@@ -93,7 +93,7 @@ def make_predictions():
         date_time = date_time.strftime("%Y-%m-%dT%H:%M:%S")
         # date_time = requests.get("http://worldtimeapi.org/api/timezone/Asia/Kolkata").json()["datetime"]
         year,month,day = date_time.split("T")[0].split('-')
-        day="09"
+        # day="09"
         current_hour,current_min,current_sec = date_time.split("T")[1].split(':')
         current_min = int(current_min.strip())
         current_hour = int(current_hour.strip())
