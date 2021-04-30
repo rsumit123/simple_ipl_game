@@ -6,6 +6,8 @@ import pymongo
 import copy
 import time
 from datetime import datetime
+
+dropdown_players = None
 no_of_predictions = 6
 api_url = "https://ipl2021-live.herokuapp.com/scorecard?match_no=18"
 prediction_mappings= {"prediction_1":"Most Runs","prediction_2":"Most Wickets","prediction_3":"Winning Team","prediction_4":"First Innings Score","prediction_5":"Second Innings Score","prediction_6":"Most Sixes","points":"points"}
@@ -83,6 +85,53 @@ def get_data_from_api(match_no):
     data = requests.get(api_url.replace("18",str(match_no))).json()
     return data
 
+def get_dropdown_values(selected_class,selected_class_1,selected_class_2):
+
+    pla =[]
+    if selected_class_1 is not None:
+        selected_class_1_l = selected_class_1.lower()
+    else:
+        selected_class_1_l = ""
+
+    if selected_class_2 is not None:
+        selected_class_2_l = selected_class_2.lower()
+    else:
+        selected_class_2_l = ""
+
+
+    for i in dropdown_players:
+        if i=="-- Select Batsman --" or i.lower() != selected_class.lower() and i.lower() != selected_class_1_l and i.lower() != selected_class_2_l:
+            pla.append(i)
+
+
+
+
+    # class_entry_relations = {'class1': ['val1', 'val2'],
+                            #  'class2': ['foo', 'bar', 'xyz']}
+
+    return pla
+
+
+@app.route('/_update_dropdown')
+def update_dropdown():
+
+    # the value of the first dropdown (selected by the user)
+    selected_class = request.args.get('selected_class', type=str)
+    selected_class1 = request.args.get('selected_class_1', type=str)
+    selected_class2 = request.args.get('selected_class_2', type=str)
+    print("class",selected_class)
+    print("class1",selected_class1)
+
+    # get values for the second dropdown
+    updated_values = get_dropdown_values(selected_class,selected_class1,selected_class2)
+
+    # create the value sin the dropdown as a html string
+    html_string_selected = ''
+    for entry in updated_values:
+        html_string_selected += '<option value="{}">{}</option>'.format(entry, entry)
+
+    return jsonify(html_string_selected=html_string_selected)
+
 @app.route("/predictions", methods=["GET","POST"])
 def make_predictions():
 
@@ -132,7 +181,8 @@ def make_predictions():
         match_hours = int(res["match_time"].split(":")[0].strip())+12
         match_mins = int(res["match_time"].split(":")[1].replace("PM",'').strip())
         client.close()
-        if  (current_hour>match_hours) or (current_hour == match_hours and current_min > 40) :
+        if 1==2:
+        # if  (current_hour>match_hours) or (current_hour == match_hours and current_min > 40) :
             flash("Time has passed please select another match")
             return render_template("failure1.html")
         else:
@@ -179,9 +229,13 @@ def make_predictions():
 
             
             matches2 = copy.deepcopy(matches)
+            matches3 = copy.deepcopy(matches)
+            matches3.insert(0,"-- Select Batsman --")
+            global dropdown_players
+            dropdown_players = copy.deepcopy(matches3)
 
 
-            return render_template("load_predictions_data.html",activities0 = matches, activities1=matches2 , match_no = [activity], activities2 = playing_teams , activities3 = innings_1_score , activities4 = innings_2_score,activities5 = playing_teams , activities6= matches2 , activities6_1 = mode_of_dismissals)
+            return render_template("load_predictions_data.html",activities0 = matches, activities1=matches2 , match_no = [activity], activities2 = playing_teams , activities3 = innings_1_score , activities4 = innings_2_score,activities5 = playing_teams , activities6= matches3 , activities6_1 = mode_of_dismissals)
 
         # for user in res:
         #     if user['username']==username and user['password']==password:
