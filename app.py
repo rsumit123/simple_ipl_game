@@ -53,7 +53,7 @@ def add_player_process():
         
         cc.insert_one({"username":username,"password":password,"points":0})
         cc2 = db["per_match_data"]
-        cc2.update_many({},{"$set":{"player_predictions."+username:{"prediction_1":"NA","prediction_2":"NA","prediction_3":"NA","prediction_4":"NA","prediction_5":"NA","prediction_6":"NA","points":0}}})
+        cc2.update_many({},{"$set":{"player_predictions."+username:{"prediction_1":"NA","prediction_2":"NA","prediction_3":"NA","prediction_4":"NA","prediction_5":"NA","prediction_6":"NA","points":0,"prediction_7":"NA"}}})
         client.close()
 
         
@@ -167,6 +167,7 @@ def make_predictions():
                     client.close()
                 innings_1_score = ["< 120","121 - 140","141 - 160","161 - 180","181 - 200","200+"]
                 innings_2_score = innings_1_score.copy()
+                mode_of_dismissals = ["caught","lbw","bold","stump","runout"]
                 
             else:
                 print(playing_teams)
@@ -180,7 +181,7 @@ def make_predictions():
             matches2 = copy.deepcopy(matches)
 
 
-            return render_template("load_predictions_data.html",activities0 = matches, activities1=matches2 , match_no = [activity], activities2 = playing_teams , activities3 = innings_1_score , activities4 = innings_2_score,activities5 = playing_teams)
+            return render_template("load_predictions_data.html",activities0 = matches, activities1=matches2 , match_no = [activity], activities2 = playing_teams , activities3 = innings_1_score , activities4 = innings_2_score,activities5 = playing_teams , activities6= matches2 , activities6_1 = mode_of_dismissals)
 
         # for user in res:
         #     if user['username']==username and user['password']==password:
@@ -329,7 +330,7 @@ def update_final_leaderboard():
 
 @app.route("/view_predictions",methods=["GET","POST"])
 def view_predictions():
-    
+
     if request.method == "GET":
         client = make_connections()
         db = client.player_data

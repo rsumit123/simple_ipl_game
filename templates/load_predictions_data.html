@@ -54,6 +54,13 @@
                   <option value="{{ activity5 }}">{{ activity5 }}</option>
               {% endfor %}
             </select>
+
+            <h4>Select the batsman and their mode of dismissals</h4>
+            <select name="activity6" style="margin:auto;max-width:600px">
+                {% for activity6 in activities6 %}
+                    <option value="{{ activity6 }}">{{ activity6 }}</option>
+                {% endfor %}
+              </select>
         
         <br><br><br>
         <button type="submit" <i> Submit</i></button>
