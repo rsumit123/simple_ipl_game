@@ -18,35 +18,42 @@
           </select>
 
         <h4>Select The player with highest runs</h4>
-        <select name="activity" style="margin:auto;max-width:600px">
-            {% for activity in activities %}
-                <option value="{{ activity }}">{{ activity }}</option>
+        <select name="activity0" style="margin:auto;max-width:600px">
+            {% for activity0 in activities0 %}
+                <option value="{{ activity0 }}">{{ activity0 }}</option>
             {% endfor %}
           </select>
         <h4> select the player with highest wickets </h4>
+        <select name="activity1" style="margin:auto;max-width:600px">
+            {% for activity1 in activities1 %}
+                <option value="{{ activity1 }}">{{ activity1 }}</option>
+            {% endfor %}
+          </select>
+          <h4>Select The winning Team</h4>
         <select name="activity2" style="margin:auto;max-width:600px">
             {% for activity2 in activities2 %}
                 <option value="{{ activity2 }}">{{ activity2 }}</option>
             {% endfor %}
           </select>
-          <h4>Select The winning Team</h4>
+          <h4>Select the range of 1st innings score</h4>
         <select name="activity3" style="margin:auto;max-width:600px">
             {% for activity3 in activities3 %}
                 <option value="{{ activity3 }}">{{ activity3 }}</option>
             {% endfor %}
           </select>
-          <h4>Select the range of 1st innings score</h4>
+          <h4>Select the range of 2nd innings score</h4>
         <select name="activity4" style="margin:auto;max-width:600px">
             {% for activity4 in activities4 %}
                 <option value="{{ activity4 }}">{{ activity4 }}</option>
             {% endfor %}
           </select>
-          <h4>Select the range of 2nd innings score</h4>
-        <select name="activity5" style="margin:auto;max-width:600px">
-            {% for activity5 in activities5 %}
-                <option value="{{ activity5 }}">{{ activity5 }}</option>
-            {% endfor %}
-          </select>
+
+          <h4>Select the team which will hit the most sixes</h4>
+          <select name="activity5" style="margin:auto;max-width:600px">
+              {% for activity5 in activities5 %}
+                  <option value="{{ activity5 }}">{{ activity5 }}</option>
+              {% endfor %}
+            </select>
         
         <br><br><br>
         <button type="submit" <i> Submit</i></button>

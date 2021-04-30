@@ -6,9 +6,9 @@ import pymongo
 import copy
 import time
 from datetime import datetime
-
+no_of_predictions = 6
 api_url = "https://ipl2021-live.herokuapp.com/scorecard?match_no=18"
-prediction_mappings= {"prediction_1":"Most Runs","prediction_2":"Most Wickets","prediction_3":"Winning Team","prediction_4":"First Innings Score","prediction_5":"Second Innings Score","points":"points"}
+prediction_mappings= {"prediction_1":"Most Runs","prediction_2":"Most Wickets","prediction_3":"Winning Team","prediction_4":"First Innings Score","prediction_5":"Second Innings Score","prediction_6":"Most Sixes","points":"points"}
 teams = {"bangalore":"rcb","chennai":"csk","kolkata":"kkr","rajasthan":"rr","delhi":"dc","mumbai":"mi","hyderabad":"srh","punjab":"pbks"}
 player_mappings = {"mohammad shami":"mohammed shami","amit mishra":"a mishra"}
 # MONGODB_URL = 'mongodb+srv://rsumit123:mongoatlas@cluster0.eyg9j.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
@@ -53,7 +53,7 @@ def add_player_process():
         
         cc.insert_one({"username":username,"password":password,"points":0})
         cc2 = db["per_match_data"]
-        cc2.update_many({},{"$set":{"player_predictions."+username:{"prediction_1":"NA","prediction_2":"NA","prediction_3":"NA","prediction_4":"NA","prediction_5":"NA","points":0}}})
+        cc2.update_many({},{"$set":{"player_predictions."+username:{"prediction_1":"NA","prediction_2":"NA","prediction_3":"NA","prediction_4":"NA","prediction_5":"NA","prediction_6":"NA","points":0}}})
         client.close()
 
         
@@ -93,7 +93,7 @@ def make_predictions():
         date_time = date_time.strftime("%Y-%m-%dT%H:%M:%S")
         # date_time = requests.get("http://worldtimeapi.org/api/timezone/Asia/Kolkata").json()["datetime"]
         year,month,day = date_time.split("T")[0].split('-')
-        # day="09"
+        day="09"
         current_hour,current_min,current_sec = date_time.split("T")[1].split(':')
         current_min = int(current_min.strip())
         current_hour = int(current_hour.strip())
@@ -180,7 +180,7 @@ def make_predictions():
             matches2 = copy.deepcopy(matches)
 
 
-            return render_template("load_predictions_data.html",activities = matches, activities2=matches2 , match_no = [activity], activities3 = playing_teams , activities4 = innings_1_score , activities5 = innings_2_score)
+            return render_template("load_predictions_data.html",activities0 = matches, activities1=matches2 , match_no = [activity], activities2 = playing_teams , activities3 = innings_1_score , activities4 = innings_2_score,activities5 = playing_teams)
 
         # for user in res:
         #     if user['username']==username and user['password']==password:
@@ -193,11 +193,15 @@ def submit_predictions():
         username = request.form["username"].strip().lower()
         password = request.form["password"]
         match_no = int(request.form["no"])
-        prediction_1 = request.form["activity"].lower()
-        prediction_2 = request.form["activity2"].lower()
-        prediction_3 = request.form["activity3"].lower()
-        prediction_4 = request.form["activity4"].lower()
-        prediction_5 = request.form["activity5"].lower()
+        predictions = [None]*no_of_predictions
+        for i in range(0,no_of_predictions):
+            predictions[i] = request.form["activity"+str(i)].lower()
+        # prediction_1 = request.form["activity1"].lower()
+        # prediction_2 = request.form["activity2"].lower()
+        # prediction_3 = request.form["activity3"].lower()
+        # prediction_4 = request.form["activity4"].lower()
+        # prediction_5 = request.form["activity5"].lower()
+        # prediction_6 = request.form["activity6"].lower()
         client = make_connections()
         res = client["player_data"]["final_player_data"]
         all_users = list(res.find())
@@ -212,11 +216,14 @@ def submit_predictions():
         db = client.player_data
         
         cc = db["per_match_data"]
-        cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_1":prediction_1}})
-        cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_2":prediction_2}})
-        cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_3":prediction_3}})
-        cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_4":prediction_4}})
-        cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_5":prediction_5}})
+        for i in range(0,no_of_predictions):
+            cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_"+str(i+1):predictions[i]}})
+            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_2":prediction_2}})
+            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_3":prediction_3}})
+            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_4":prediction_4}})
+            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_5":prediction_5}})
+            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_6":prediction_6}})
+
         client.close()
 
 
@@ -322,6 +329,7 @@ def update_final_leaderboard():
 
 @app.route("/view_predictions",methods=["GET","POST"])
 def view_predictions():
+    
     if request.method == "GET":
         client = make_connections()
         db = client.player_data
@@ -384,7 +392,7 @@ def update_points(match_no):
 
 def get_points(match_no,user_data):
     # match_no=19
-    player_points={"prediction_1":{"NA":0,"na":0},"prediction_2":{"NA":0,"na":0},"prediction_3":{"NA":0,"na":0},"prediction_4":{"NA":0,"na":0},"prediction_5":{"NA":0,"na":0}}
+    player_points={"prediction_1":{"NA":0,"na":0},"prediction_2":{"NA":0,"na":0},"prediction_3":{"NA":0,"na":0},"prediction_4":{"NA":0,"na":0},"prediction_5":{"NA":0,"na":0},"prediction_6":{"NA":0,"na":0}}
     try:
 
         scorecard_data = requests.get(api_url.replace("18",str(match_no)),verify=False,timeout=10).json()
@@ -420,16 +428,79 @@ def get_points(match_no,user_data):
         prediction_5 = pred["prediction_5"]
         if prediction_5 not in player_points["prediction_5"]:
             player_points["prediction_5"][prediction_5] = calculate_points_prediction_5(prediction_5,scorecard_data)
+        prediction_6 = pred["prediction_6"]
+        if prediction_6 not in player_points["prediction_6"]:
+            player_points["prediction_6"][prediction_6] = calculate_points_prediction_6(prediction_6,scorecard_data)
+        
 
         
         
-        user_points[username] = player_points["prediction_1"][prediction_1]+player_points["prediction_2"][prediction_2]+player_points["prediction_3"][prediction_3]+player_points["prediction_4"][prediction_4]+player_points["prediction_5"][prediction_5]
+        user_points[username] = player_points["prediction_1"][prediction_1]+player_points["prediction_2"][prediction_2]+player_points["prediction_3"][prediction_3]+player_points["prediction_4"][prediction_4]+player_points["prediction_5"][prediction_5]+player_points["prediction_6"][prediction_6]
     print("PLAYER POINTS===========================>")
     print(player_points)
     print("User points==============================>")
     print(user_points)
 
     return user_points
+
+
+def calculate_points_prediction_6(prediction_6,scoreboard_data):
+
+    p_points = 0
+    if len(scoreboard_data["Innings1"][2]) >1:
+
+        
+        innings_1_team = ""
+        innings_2_team = ""
+
+        for t in teams.keys():
+
+            if t in scoreboard_data["Innings1"][2]["team"].lower():
+                innings_1_team = teams[t]
+            
+            elif t in scoreboard_data["Innings2"][2]["team"].lower():
+                innings_2_team = teams[t]
+
+        if innings_1_team == "" or innings_2_team =="":
+            return p_points
+            
+        sixes_comp = {innings_1_team:0,innings_2_team:0}
+
+        
+        sixes_comp[innings_1_team] = get_sixes(1,scoreboard_data)
+        sixes_comp[innings_2_team] = get_sixes(2,scoreboard_data)
+
+        print("SIXES DATA: ===",sixes_comp)
+
+        if prediction_6 == innings_1_team and sixes_comp[innings_1_team] >= sixes_comp[innings_2_team]:
+            p_points = 100
+
+        elif prediction_6 == innings_2_team and sixes_comp[innings_2_team] >= sixes_comp[innings_1_team]:
+            p_points = 100
+
+        else:
+            p_points = 0
+
+    return p_points
+        
+
+
+
+
+
+
+                
+def get_sixes(innings,scoreboard_data):
+
+    no_of_sixes=0
+
+    for batter in scoreboard_data["Innings"+str(innings)][0]["Batsman"]:
+
+        no_of_sixes+= int(batter["sixes"])
+
+    return no_of_sixes
+
+
 
 
 
