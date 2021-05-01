@@ -6,11 +6,11 @@ import pymongo
 import copy
 import time
 from datetime import datetime
-
+# no_of_group_predictions = 4
 dropdown_players = None
-no_of_predictions = 6
+no_of_predictions = 7
 api_url = "https://ipl2021-live.herokuapp.com/scorecard?match_no=18"
-prediction_mappings= {"prediction_1":"Most Runs","prediction_2":"Most Wickets","prediction_3":"Winning Team","prediction_4":"First Innings Score","prediction_5":"Second Innings Score","prediction_6":"Most Sixes","points":"points"}
+prediction_mappings= {"prediction_1":"Most Runs","prediction_2":"Most Wickets","prediction_3":"Winning Team","prediction_4":"First Innings Score","prediction_5":"Second Innings Score","prediction_6":"Most Sixes","prediction_7":"Mode of Dismissals","points":"points"}
 teams = {"bangalore":"rcb","chennai":"csk","kolkata":"kkr","rajasthan":"rr","delhi":"dc","mumbai":"mi","hyderabad":"srh","punjab":"pbks"}
 player_mappings = {"mohammad shami":"mohammed shami","amit mishra":"a mishra"}
 # MONGODB_URL = 'mongodb+srv://rsumit123:mongoatlas@cluster0.eyg9j.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
@@ -143,6 +143,7 @@ def make_predictions():
         # date_time = requests.get("http://worldtimeapi.org/api/timezone/Asia/Kolkata").json()["datetime"]
         year,month,day = date_time.split("T")[0].split('-')
         day="09"
+        month = "04"
         current_hour,current_min,current_sec = date_time.split("T")[1].split(':')
         current_min = int(current_min.strip())
         current_hour = int(current_hour.strip())
@@ -248,9 +249,15 @@ def submit_predictions():
         username = request.form["username"].strip().lower()
         password = request.form["password"]
         match_no = int(request.form["no"])
+        grouped_predictions = {}
         predictions = [None]*no_of_predictions
-        for i in range(0,no_of_predictions):
+        for i in range(0,no_of_predictions-1):
             predictions[i] = request.form["activity"+str(i)].lower()
+        for i in range(0,4):
+            grouped_predictions[request.form["activity"+str(i+6)].lower()]= request.form["activity"+str(i+6)+"_1"].lower()
+
+        predictions[no_of_predictions-1] = grouped_predictions
+        # print(predictions)
         # prediction_1 = request.form["activity1"].lower()
         # prediction_2 = request.form["activity2"].lower()
         # prediction_3 = request.form["activity3"].lower()
@@ -403,18 +410,87 @@ def view_predictions():
         db = client.player_data
         try:
             cc = db["per_match_data"].find_one({"match_name":match_name})
+            client.close()
         except:
             client.close()
             client = make_connections()
             db = client.player_data
             cc = db["per_match_data"].find_one({"match_name":match_name})
+            client.close()
 
 
         
 
-        return render_template("show_predictions.html",player_predictions = cc['player_predictions'],prediction_mapping = prediction_mappings)
+        return render_template("show_predictions.html",player_predictions = cc['player_predictions'],match_name= match_name,prediction_mapping = prediction_mappings)
 
-    
+@app.route("/points_breakdown",methods=["GET","POST"])
+def points_breakdown():
+    # if request.method == "GET":
+    #     client = make_connections()
+    #     db = client.player_data
+        
+    #     cc = db["per_match_data"]
+    #     matches = list(cc.find({},{"match_name":1,"match_no":1,"_id":0}))
+    #     matches = sorted(matches, key=lambda k: k['match_no'])
+    #     matches = [i["match_name"] for i in matches]
+    #     client.close()
+
+    #     return render_template('view_predictions.html',matches = matches )
+
+    if request.method =="GET":
+        # return request.form
+        match_name = request.args.get("match_name")
+        # match_name = request.form["match"]
+        client = make_connections()
+        db = client.player_data
+        try:
+            cc = db["per_match_data"].find_one({"match_name":match_name})
+            match_no = cc['match_no']
+            player_preds = cc["player_predictions"]
+            client.close()
+        except:
+            client.close()
+            client = make_connections()
+            db = client.player_data
+            cc = db["per_match_data"].find_one({"match_name":match_name})
+            match_no = cc['match_no']
+            player_preds = cc["player_predictions"]
+            client.close()
+        user_points,player_points,grouped_predictions = update_points(match_no)
+
+        p_b = {}
+        for player, preds in player_preds.items():
+            p_b[player] = {}
+            p_b[player]["Most Runs"] = {preds["prediction_1"]:player_points["prediction_1"][preds["prediction_1"]]}
+            p_b[player]["Most Wickets"] = {preds["prediction_2"]:player_points["prediction_2"][preds["prediction_2"]]}
+            p_b[player]["Winning Team"] = {preds["prediction_3"]:player_points["prediction_3"][preds["prediction_3"]]}
+            p_b[player]["Innings 1 Score"] = {preds["prediction_4"]:player_points["prediction_4"][preds["prediction_4"]]}
+            p_b[player]["Innings 2 Score"] = {preds["prediction_5"]:player_points["prediction_5"][preds["prediction_5"]]}
+            p_b[player]["Most Sixes"] = {preds["prediction_6"]:player_points["prediction_6"][preds["prediction_6"]]}
+            if type(preds["prediction_7"]) is str:
+                itr = {}
+            else:
+                
+                itr = preds["prediction_7"]
+            p_b[player]["Mode of Dismissal_1"] = {"NA":0}
+            p_b[player]["Mode of Dismissal_2"] = {"NA":0}
+            p_b[player]["Mode of Dismissal_3"] = {"NA":0}
+            p_b[player]["Mode of Dismissal_4"] = {"NA":0}
+            i=0
+            for k,v in itr.items():
+                p_b[player]["Mode of Dismissal_"+str(i+1)] = {k+"|"+v: grouped_predictions[k+"|"+v]}
+                i+=1
+            p_b[player]["Total Points"] = {"points_total":user_points[player]}
+            
+        print(p_b)
+
+
+        return render_template("view_breakdown.html",player_prediction_data = p_b, match_name = match_name)
+
+            
+
+
+
 @app.route("/update_points/<int:match_no>",methods=["GET"])
 def update_points(match_no):
 # tz = pytz.timezone('Asia/Kolkata')
@@ -432,7 +508,7 @@ def update_points(match_no):
     cc2 = db["per_match_data"]
     res = cc2.find_one({"match_no":match_no},{"_id":0})
     match_no = res["match_no"]
-    user_points = get_points(match_no,res)
+    user_points,player_points,group_points = get_points(match_no,res)
     # cc = db["final_player_data"]
     for user,point in user_points.items():
         cc2.update_one({"match_no":match_no},{"$set":{"player_predictions."+user+".points":point}})
@@ -443,11 +519,12 @@ def update_points(match_no):
 
     client.close()
     
-    return user_points
+    return user_points,player_points,group_points
 
 def get_points(match_no,user_data):
     # match_no=19
     player_points={"prediction_1":{"NA":0,"na":0},"prediction_2":{"NA":0,"na":0},"prediction_3":{"NA":0,"na":0},"prediction_4":{"NA":0,"na":0},"prediction_5":{"NA":0,"na":0},"prediction_6":{"NA":0,"na":0}}
+    group_points = {"-- Select Batsman --|bold":0}
     try:
 
         scorecard_data = requests.get(api_url.replace("18",str(match_no)),verify=False,timeout=10).json()
@@ -486,17 +563,133 @@ def get_points(match_no,user_data):
         prediction_6 = pred["prediction_6"]
         if prediction_6 not in player_points["prediction_6"]:
             player_points["prediction_6"][prediction_6] = calculate_points_prediction_6(prediction_6,scorecard_data)
+
+        
+        prediction_7 = pred["prediction_7"]
+        if type(prediction_7) is dict:
+            for batter, m_dismissal in prediction_7.items():
+                if batter+"|"+m_dismissal not in group_points:
+                    group_points[batter+"|"+m_dismissal] = calculate_points_prediction_7(batter,m_dismissal,scorecard_data)
+                
+            
+        
+        
+
+
+        
+
         
 
         
         
         user_points[username] = player_points["prediction_1"][prediction_1]+player_points["prediction_2"][prediction_2]+player_points["prediction_3"][prediction_3]+player_points["prediction_4"][prediction_4]+player_points["prediction_5"][prediction_5]+player_points["prediction_6"][prediction_6]
+        if type(prediction_7) is dict:
+            for batter, m_dismissal in prediction_7.items():
+                user_points[username]+= group_points[batter+"|"+m_dismissal]
     print("PLAYER POINTS===========================>")
     print(player_points)
     print("User points==============================>")
     print(user_points)
+    print("Group points==============================>")
+    print(group_points)
 
-    return user_points
+
+    return user_points,player_points,group_points
+
+def calculate_points_prediction_7(batter,m_dismissal,scorecard_data):
+    p_points = 0
+
+    for player_data in scorecard_data["Innings1"][0]["Batsman"]:
+        
+        if batter.lower().replace('(c)','').replace('(wk)','').strip() in player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() or player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() in batter.lower().replace('(c)','').replace('(wk)','').strip() :
+            
+            p_points=calculate_points_for_dismissal(player_data,m_dismissal,scorecard_data)
+            # player_points[prediction_1] = p_points
+            return p_points
+        
+        # elif prediction_1.lower().split()[1] in player_data["name"].split()[1].lower():
+        #     p_points=calculate_points_for_runs(player_data,scorecard_data)
+        #     # player_points[prediction_1] = p_points
+        #     break
+        
+        
+        
+        # elif prediction_1.lower().split()[1] in player_data["name"]:
+        #     p_points=calculate_points_for_runs(player_data,scorecard_data)
+        #     # player_points[prediction_1] = p_points
+        #     break
+    for player_data in scorecard_data["Innings2"][0]["Batsman"]:
+        
+        if batter.lower().replace('(c)','').replace('(wk)','').strip() in player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() or player_data["name"].lower().replace('(c)','').replace('(wk)','').strip() in batter.replace('(c)','').replace('(wk)','').strip().lower() :
+            
+            p_points=calculate_points_for_dismissal(player_data,m_dismissal,scorecard_data)
+            # player_points[prediction_1] = p_points
+            return p_points
+
+
+    #####################################################CALCULATE MAPPINGS===========
+
+
+
+
+
+
+    if batter in player_mappings:
+
+        batter = player_mappings[batter]
+
+        for player_data in scorecard_data["Innings1"][0]["Batsman"]:
+        
+            if batter.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in batter.lower() :
+                
+                p_points=calculate_points_for_dismissal(player_data,m_dismissal,scorecard_data)
+                # player_points[prediction_1] = p_points
+                return p_points
+        for player_data in scorecard_data["Innings2"][0]["Batsman"]:
+        
+            if batter.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in batter.lower() :
+                
+                p_points=calculate_points_for_dismissal(player_data,m_dismissal,scorecard_data)
+                # player_points[prediction_1] = p_points
+                return p_points
+
+    return p_points
+
+
+def calculate_points_for_dismissal(player_data,m_dismissal,scorecard_data):
+    
+
+    p_points = 0
+    
+    if m_dismissal == "caught" and player_data["dismissal"].startswith("c "):
+        p_points = 25
+
+    elif m_dismissal == "bold" and player_data["dismissal"].startswith("b "):
+        p_points = 50
+
+    elif m_dismissal == "stump" and player_data["dismissal"].startswith("st "):
+        p_points = 50
+
+    elif m_dismissal == "lbw" and player_data["dismissal"].startswith("lbw "):
+        p_points = 50
+
+    elif m_dismissal == "runout" and player_data["dismissal"].startswith("run out "):
+        p_points = 100
+
+    else:
+        p_points = 0
+
+    return p_points
+
+    
+
+    
+
+
+
+
+
+
 
 
 def calculate_points_prediction_6(prediction_6,scoreboard_data):
@@ -771,14 +964,14 @@ def calculate_points_prediction_1(prediction_1,scorecard_data):
         
             if prediction_1.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_1.lower() :
                 
-                p_points=calculate_points_for_wickets(player_data,scorecard_data)
+                p_points=calculate_points_for_runs(player_data,scorecard_data)
                 # player_points[prediction_1] = p_points
                 return p_points
         for player_data in scorecard_data["Innings2"][0]["Batsman"]:
         
             if prediction_1.lower().strip() in player_data["name"].lower().strip() or player_data["name"].lower() in prediction_1.lower() :
                 
-                p_points=calculate_points_for_wickets(player_data,scorecard_data)
+                p_points=calculate_points_for_runs(player_data,scorecard_data)
                 # player_points[prediction_1] = p_points
                 return p_points
 

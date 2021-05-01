@@ -8,21 +8,32 @@
     <body>
         
         
-        <h1><center>View Predictions </center></h1>
-        <h3></h3>
-        <form class="example" method="post" action="" style="margin:auto;max-width:600px">
-            <h4>Select Match</h4>
-            
-            <select name="match" style="margin:auto;max-width:600px">
-                {% for no in matches%}
-                    <option value="{{ no }}">{{ no }}</option>
-                {% endfor %}
-              </select>
-            
-              <br><br>
-            <button type="submit" <i> View</i></button>
-        </form>
-    <br><br>
+        <h3> <center> Points breakdown for {{ match_name }} </center> </h3>
+  <table border = 1, style="margin:auto;max-width:800px">
+    <tr>
+        <th>User</th>
+        {% for keys in player_prediction_data["rsumit123"].keys() %}
+        <th>{{ keys }}</th>
+        {% endfor %}
+        
+
+    </tr>
+    {% for key, value in player_prediction_data.items() %}
+
+    <tr>
+       <td> {{ key }} </td>
+       {% for k, v in value.items() %}
+       {% for i, j in v.items() %}
+       
+
+       <td> {{ i }} | Points : {{ j }} </td>
+       {% endfor %}
+       
+       {% endfor %}
+    </tr>
+
+    {% endfor %}
+ </table>
     
     
     <a href={{ url_for("home") }}>Go Back to Home</a>
