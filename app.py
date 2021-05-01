@@ -456,7 +456,10 @@ def points_breakdown():
             match_no = cc['match_no']
             player_preds = cc["player_predictions"]
             client.close()
-        user_points,player_points,grouped_predictions = update_points(match_no)
+        r_dict = update_points(match_no)
+        player_points = r_dict["player_points"]
+        user_points = r_dict["user_points"]
+        grouped_predictions = r_dict["group_points"]
 
         p_b = {}
         for player, preds in player_preds.items():
@@ -518,8 +521,9 @@ def update_points(match_no):
 
 
     client.close()
+    r_dict = {"user_points":user_points,"player_points":player_points,"group_points":group_points}
     
-    return user_points,player_points,group_points
+    return r_dict
 
 def get_points(match_no,user_data):
     # match_no=19
