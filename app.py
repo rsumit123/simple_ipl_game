@@ -702,12 +702,15 @@ def calculate_points_prediction_6(prediction_6,scoreboard_data):
         innings_2_team = ""
 
         for t in teams.keys():
+            try:
 
-            if t in scoreboard_data["Innings1"][2]["team"].lower():
-                innings_1_team = teams[t]
-            
-            elif t in scoreboard_data["Innings2"][2]["team"].lower():
-                innings_2_team = teams[t]
+                if t in scoreboard_data["Innings1"][2]["team"].lower():
+                    innings_1_team = teams[t]
+                
+                elif t in scoreboard_data["Innings2"][2]["team"].lower():
+                    innings_2_team = teams[t]
+            except:
+                return p_points
 
         if innings_1_team == "" or innings_2_team =="":
             return p_points
