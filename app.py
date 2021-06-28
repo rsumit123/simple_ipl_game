@@ -6,28 +6,34 @@ import pymongo
 import copy
 import time
 from datetime import datetime
-# no_of_group_predictions = 4
+import os
 dropdown_players = None
 no_of_predictions = 7
-api_url = "https://ipl2021-live.herokuapp.com/scorecard?match_no=18"
+
+
+api_url = "https://cricket-scorecard-2021.herokuapp.com/scorecard?ipl_match_no=18"
+
+
+
+
 prediction_mappings = {"prediction_1": "Most Runs", "prediction_2": "Most Wickets", "prediction_3": "Winning Team", "prediction_4": "First Innings Score",
                        "prediction_5": "Second Innings Score", "prediction_6": "Most Sixes", "prediction_7": "Mode of Dismissals", "points": "points"}
 teams = {"bangalore": "rcb", "chennai": "csk", "kolkata": "kkr", "rajasthan": "rr",
          "delhi": "dc", "mumbai": "mi", "hyderabad": "srh", "punjab": "pbks"}
 player_mappings = {"mohammad shami": "mohammed shami",
                    "amit mishra": "a mishra"}
-# MONGODB_URL = 'mongodb+srv://rsumit123:mongoatlas@cluster0.eyg9j.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
-MONGODB_URL = "mongodb://rsumit123:mongoatlas@cluster0-shard-00-00.eyg9j.mongodb.net:27017,cluster0-shard-00-01.eyg9j.mongodb.net:27017,cluster0-shard-00-02.eyg9j.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-dbf0fd-shard-0&authSource=admin&retryWrites=true&w=majority"
+
+MONGODB_URL = os.environ['MONGODB_URL']
+APP_SECRET_KEY = os.environ['APP_SECRET_KEY']
+
 app = flask.Flask(__name__)
-app.secret_key = "abcd1234abcd123abcd12"
-# client = None
+app.secret_key = APP_SECRET_KEY
 
 
 def make_connections():
-    # global client
+    ''' return mongodb connections '''
     client = pymongo.MongoClient(MONGODB_URL)
 
-    # db = client.player_data
     return client
 
 
@@ -38,12 +44,15 @@ def home():
 
 @app.route("/add_player", methods=["GET"])
 def add_player():
+    ''' Register a new player '''
     if request.method == "GET":
         return render_template('add_player.html', data="Enter a unique username")
 
 
 @app.route("/add_player", methods=["POST"])
 def add_player_process():
+    ''' Register a new player '''
+
     username = request.form['username'].strip().lower().replace('.', '')
     password = request.form['password']
     client = make_connections()
@@ -70,6 +79,9 @@ def add_player_process():
 
 @app.route("/leaderboard", methods=["GET"])
 def get_leaderboard():
+    ''' Get user points based on their predictions '''
+
+
     client = make_connections()
     db = client.player_data
     cc = db["final_player_data"]
@@ -156,21 +168,23 @@ def make_predictions():
         client = make_connections()
         db = client.player_data
         cc2 = db["per_match_data"]
-        res = list(cc2.find({"match_date": date}, {"_id": 0}))
+        res = list(cc2.find( {},{"_id": 0}))#{"match_date": date},
+        
         matches = []
         for i in res:
             matches.append(str(i["match_no"])+" | "+i["match_name"])
+
+        matches = sorted(matches, key=lambda k: int(k.split('|')[0].strip()))
+        
         client.close()
 
         return render_template('prediction.html', activities=matches)
     else:
-        # username = request.form["username"].strip().lower()
-        # password = request.form["password"]
+        
         tz = pytz.timezone('Asia/Kolkata')
         date_time = datetime.now(tz)
 
         date_time = date_time.strftime("%Y-%m-%dT%H:%M:%S")
-        # date_time = requests.get("http://worldtimeapi.org/api/timezone/Asia/Kolkata").json()["datetime"]
         current_hour, current_min, current_sec = date_time.split("T")[
             1].split(':')
         current_min = int(current_min.strip())
@@ -187,8 +201,8 @@ def make_predictions():
         match_mins = int(res["match_time"].split(":")[
                          1].replace("PM", '').strip())
         client.close()
-        # if 1==2:
-        if (current_hour > match_hours) or (current_hour == match_hours and current_min > 40):
+        if 1==2:
+        # if (current_hour > match_hours) or (current_hour == match_hours and current_min > 40):
             flash("Time has passed please select another match")
             return render_template("failure1.html")
         else:
@@ -261,13 +275,7 @@ def submit_predictions():
                                              str(i+6)].lower()] = request.form["activity"+str(i+6)+"_1"].lower()
 
         predictions[no_of_predictions-1] = grouped_predictions
-        # print(predictions)
-        # prediction_1 = request.form["activity1"].lower()
-        # prediction_2 = request.form["activity2"].lower()
-        # prediction_3 = request.form["activity3"].lower()
-        # prediction_4 = request.form["activity4"].lower()
-        # prediction_5 = request.form["activity5"].lower()
-        # prediction_6 = request.form["activity6"].lower()
+        
         client = make_connections()
         res = client["player_data"]["final_player_data"]
         all_users = list(res.find())
@@ -285,11 +293,7 @@ def submit_predictions():
         for i in range(0, no_of_predictions):
             cc.update_one({"match_no": match_no}, {"$set": {
                           "player_predictions."+username+".prediction_"+str(i+1): predictions[i]}})
-            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_2":prediction_2}})
-            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_3":prediction_3}})
-            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_4":prediction_4}})
-            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_5":prediction_5}})
-            # cc.update_one({"match_no":match_no},{"$set":{"player_predictions."+username+".prediction_6":prediction_6}})
+            
 
         client.close()
 
@@ -310,29 +314,7 @@ def match_leaderboard():
         client.close()
         return render_template('prediction.html', activities=matches)
 
-        # return render_template('view_predictions.html',matches = matches )
-
-    # if request.method=="GET":
-    #     tz = pytz.timezone('Asia/Kolkata')
-    #     date_time = datetime.now(tz)
-
-    #     date_time = date_time.strftime("%Y-%m-%dT%H:%M:%S")
-    #     # date_time = requests.get("http://worldtimeapi.org/api/timezone/Asia/Kolkata").json()["datetime"]
-    #     year,month,day = date_time.split("T")[0].split('-')
-    #     # day="25"
-    #     current_hour,current_min,current_sec = date_time.split("T")[1].split(':')
-    #     current_min = int(current_min.strip())
-    #     current_hour = int(current_hour.strip())
-
-    #     date = day+"/"+month+"/"+year
-    #     client = make_connections()
-    #     db = client.player_data
-    #     cc2 = db["per_match_data"]
-    #     res = list(cc2.find({"match_date":date},{"_id":0}))
-    #     matches=[]
-    #     for i in res:
-    #         matches.append(str(i["match_no"])+" | "+i["match_name"])
-    #     client.close()
+        
 
     if request.method == "POST":
         match_name = request.form["activity"]
@@ -798,15 +780,7 @@ def calculate_points_prediction_2(prediction_2, scorecard_data):
             # player_points[prediction_1] = p_points
             return p_points
 
-        # elif prediction_2.lower().split()[1] in player_data["name"].split()[1].lower():
-        #     p_points=calculate_points_for_wickets(player_data,scorecard_data)
-        #     # player_points[prediction_1] = p_points
-        #     return p_points
-
-        # elif prediction_2.lower().split()[1] in player_data["name"]:
-        #     p_points=calculate_points_for_wickets(player_data,scorecard_data)
-        #     # player_points[prediction_1] = p_points
-        #     return p_points
+       
 
     for player_data in scorecard_data["Innings2"][1]["Bowlers"]:
 
@@ -840,15 +814,7 @@ def calculate_points_prediction_2(prediction_2, scorecard_data):
                 # player_points[prediction_1] = p_points
                 return p_points
 
-        # elif prediction_2.lower().split()[1] in player_data["name"].split()[1].lower():
-        #     p_points=calculate_points_for_wickets(player_data,scorecard_data)
-        #     # player_points[prediction_1] = p_points
-        #     return p_points
-
-        # elif prediction_2.lower().split()[1] in player_data["name"]:
-        #     p_points=calculate_points_for_wickets(player_data,scorecard_data)
-        #     # player_points[prediction_1] = p_points
-        #     return p_points
+        
 
     return p_points
 
@@ -879,15 +845,7 @@ def calculate_points_prediction_1(prediction_1, scorecard_data):
             # player_points[prediction_1] = p_points
             return p_points
 
-        # elif prediction_1.lower().split()[1] in player_data["name"].split()[1].lower():
-        #     p_points=calculate_points_for_runs(player_data,scorecard_data)
-        #     # player_points[prediction_1] = p_points
-        #     break
-
-        # elif prediction_1.lower().split()[1] in player_data["name"]:
-        #     p_points=calculate_points_for_runs(player_data,scorecard_data)
-        #     # player_points[prediction_1] = p_points
-        #     break
+        
     for player_data in scorecard_data["Innings2"][0]["Batsman"]:
 
         if prediction_1.lower().strip() in player_data["name"].lower().replace('(c)', '').replace('(wk)', '').strip() or player_data["name"].lower().replace('(c)', '').replace('(wk)', '').strip() in prediction_1.lower():
